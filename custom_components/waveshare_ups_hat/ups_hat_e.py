@@ -4,34 +4,32 @@ Unlike the original UPS HAT / UPS HAT (C) (which use an INA219 current sensor),
 the (E) exposes everything through an on-board MCU at I2C address 0x2d.
 Register map is taken from Waveshare's official ``ups.py`` demo.
 """
+from __future__ import annotations
+
 import logging
-from datetime import timedelta
+from typing import Any
 
 try:
     import smbus2 as smbus
 except ImportError:  # pragma: no cover - fallback for older images
     import smbus
 
-from homeassistant.util import Throttle
-
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_ADDR = 0x2d
+DEFAULT_ADDR = 0x2D
 DEFAULT_BUS = 1
 
 # Sentinel returned by the MCU for a time estimate that does not apply
 # (e.g. "time to empty" while the pack is charging).
 _NA = 0xFFFF
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=15)
 
-
-def _u16(data, i):
+def _u16(data: list[int], i: int) -> int:
     """Little-endian unsigned 16-bit from a block-read buffer."""
     return data[i] | (data[i + 1] << 8)
 
 
-def _s16(data, i):
+def _s16(data: list[int], i: int) -> int:
     """Little-endian signed 16-bit from a block-read buffer."""
     val = _u16(data, i)
     if val > 0x7FFF:
@@ -40,13 +38,13 @@ def _s16(data, i):
 
 
 class UPSHatE:
-    """Raw reader for the UPS HAT (E) MCU at 0x2d."""
+    """Raw reader for the UPS HAT (E) MCU."""
 
-    def __init__(self, i2c_bus=DEFAULT_BUS, addr=DEFAULT_ADDR):
+    def __init__(self, i2c_bus: int = DEFAULT_BUS, addr: int = DEFAULT_ADDR) -> None:
         self.addr = addr
         self.bus = smbus.SMBus(i2c_bus)
 
-    def read(self):
+    def read(self) -> dict[str, Any]:
         """Read all registers and return a parsed dict (raw units: mV/mA/mW)."""
         status = self.bus.read_i2c_block_data(self.addr, 0x02, 0x01)[0]
         if status & 0x40:
@@ -81,25 +79,14 @@ class UPSHatE:
             "remaining_capacity": _u16(bat, 6),
             # Only the estimate matching the current direction is meaningful;
             # the MCU returns 0xFFFF for the inapplicable one.
-            "time_to_empty": None if (time_to_empty == _NA or battery_current >= 0) else time_to_empty,
-            "time_to_full": None if (time_to_full == _NA or battery_current < 0) else time_to_full,
+            "time_to_empty": None
+            if (time_to_empty == _NA or battery_current >= 0)
+            else time_to_empty,
+            "time_to_full": None
+            if (time_to_full == _NA or battery_current < 0)
+            else time_to_full,
             "cell_voltage_1": _u16(cells, 0),
             "cell_voltage_2": _u16(cells, 2),
             "cell_voltage_3": _u16(cells, 4),
             "cell_voltage_4": _u16(cells, 6),
         }
-
-
-class UPSHatEData:
-    """Shared, throttled data holder so multiple entities share one I2C read."""
-
-    def __init__(self, i2c_bus=DEFAULT_BUS, addr=DEFAULT_ADDR):
-        self._dev = UPSHatE(i2c_bus, addr)
-        self.data = {}
-
-    @Throttle(MIN_TIME_BETWEEN_UPDATES)
-    def update(self):
-        try:
-            self.data = self._dev.read()
-        except OSError as err:
-            _LOGGER.warning("Failed to read UPS HAT (E) at 0x%02x: %s", self._dev.addr, err)
