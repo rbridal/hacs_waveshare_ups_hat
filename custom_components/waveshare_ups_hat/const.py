@@ -1,24 +1,13 @@
-"""Constants for the Waveshare UPS Hat integration."""
+"""Constants for the Waveshare UPS HAT (E) integration."""
 
 DOMAIN = "waveshare_ups_hat"
 
-CONF_MODEL = "model"
 CONF_BUS = "bus"
 CONF_ADDR = "addr"
-CONF_BATTERY_CAPACITY = "battery_capacity"
-CONF_MAX_SOC = "max_soc"
-
-MODEL_CLASSIC = "classic"
-MODEL_E = "e"
 
 DEFAULT_NAME = "UPS"
 DEFAULT_BUS = 1
-DEFAULT_ADDR_CLASSIC = 0x42
-DEFAULT_ADDR_E = 0x2D
-DEFAULT_MAX_SOC = 100
+DEFAULT_ADDR = 0x2D
 DEFAULT_SCAN_INTERVAL = 30
 
-MIN_ONLINE_CURRENT = -200
-MIN_CHARGING_CURRENT = 1
-MIN_BATTERY_CONNECTED_CURRENT = 0.1
 LOW_BATTERY_PERCENTAGE = 20
