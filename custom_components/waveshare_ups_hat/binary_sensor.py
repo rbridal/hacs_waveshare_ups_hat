@@ -1,4 +1,4 @@
-"""Binary sensor platform for Waveshare UPS Hat."""
+"""Binary sensor platform for Waveshare UPS HAT (E)."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,7 +15,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_MODEL, DOMAIN, MODEL_E
+from .const import DOMAIN
 from .coordinator import WaveshareUpsCoordinator
 
 
@@ -26,7 +26,7 @@ class WaveshareBinarySensorEntityDescription(BinarySensorEntityDescription):
     value_fn: Callable[[dict[str, Any]], bool]
 
 
-E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
+BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
     WaveshareBinarySensorEntityDescription(
         key="power_switch",
         name="Power switch",
@@ -41,27 +41,6 @@ E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
     ),
 )
 
-CLASSIC_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
-    WaveshareBinarySensorEntityDescription(
-        key="power_switch",
-        name="Power switch",
-        device_class=BinarySensorDeviceClass.POWER,
-        value_fn=lambda d: bool(d.get("online")),
-    ),
-    WaveshareBinarySensorEntityDescription(
-        key="charging",
-        name="Charging",
-        device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
-        value_fn=lambda d: bool(d.get("charging")),
-    ),
-    WaveshareBinarySensorEntityDescription(
-        key="low_battery",
-        name="Low battery",
-        device_class=BinarySensorDeviceClass.BATTERY,
-        value_fn=lambda d: bool(d.get("low_battery")),
-    ),
-)
-
 
 async def async_setup_entry(
     hass: HomeAssistant,
@@ -70,21 +49,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up binary sensors from a config entry."""
     coordinator: WaveshareUpsCoordinator = hass.data[DOMAIN][entry.entry_id]
-    model = entry.data[CONF_MODEL]
-
-    descriptions = (
-        E_BINARY_SENSORS if model == MODEL_E else CLASSIC_BINARY_SENSORS
-    )
     async_add_entities(
         WaveshareUpsBinarySensor(coordinator, entry, description)
-        for description in descriptions
+        for description in BINARY_SENSORS
     )
 
 
 class WaveshareUpsBinarySensor(
     CoordinatorEntity[WaveshareUpsCoordinator], BinarySensorEntity
 ):
-    """A binary sensor for the Waveshare UPS Hat."""
+    """A binary sensor for the Waveshare UPS HAT (E)."""
 
     entity_description: WaveshareBinarySensorEntityDescription
     _attr_has_entity_name = True
@@ -100,14 +74,11 @@ class WaveshareUpsBinarySensor(
         self.entity_description = description
         self._attr_unique_id = f"{entry.unique_id}_{description.key}"
         self._attr_suggested_object_id = description.key
-        model_label = (
-            "UPS HAT (E)" if entry.data[CONF_MODEL] == MODEL_E else "UPS HAT"
-        )
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,
             manufacturer="Waveshare",
-            model=model_label,
+            model="UPS HAT (E)",
         )
 
     @property
