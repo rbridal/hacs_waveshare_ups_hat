@@ -74,6 +74,46 @@ def _system_state_classic(data: dict[str, Any]) -> str:
     return "ok"
 
 
+def _scale(value: Any, factor: float) -> float | None:
+    if value is None:
+        return None
+    return round(value * factor, 3)
+
+
+def _charge_current_a(data: dict[str, Any]) -> float | None:
+    """Positive current into the batteries (A). 0 when discharging."""
+    raw = data.get("battery_current")
+    if raw is None:
+        return None
+    amps = raw * 0.001
+    return round(amps, 3) if amps > 0 else 0.0
+
+
+def _discharge_current_a(data: dict[str, Any]) -> float | None:
+    """Positive current out of the batteries (A). 0 when charging."""
+    raw = data.get("battery_current")
+    if raw is None:
+        return None
+    amps = raw * 0.001
+    return round(-amps, 3) if amps < 0 else 0.0
+
+
+def _charge_current_ma(data: dict[str, Any]) -> float | None:
+    """Positive current into the batteries (mA, classic). 0 when discharging."""
+    raw = data.get("current")
+    if raw is None:
+        return None
+    return round(raw, 1) if raw > 0 else 0.0
+
+
+def _discharge_current_ma(data: dict[str, Any]) -> float | None:
+    """Positive current out of the batteries (mA, classic). 0 when charging."""
+    raw = data.get("current")
+    if raw is None:
+        return None
+    return round(-raw, 1) if raw < 0 else 0.0
+
+
 E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     WaveshareSensorEntityDescription(
         key="system_state",
@@ -101,13 +141,22 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
         value_fn=lambda d: _scale(d.get("battery_voltage"), 0.001),
     ),
     WaveshareSensorEntityDescription(
-        key="battery_current",
-        name="Battery current",
+        key="battery_charge_current",
+        name="Battery charge current",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=3,
-        value_fn=lambda d: _scale(d.get("battery_current"), 0.001),
+        value_fn=_charge_current_a,
+    ),
+    WaveshareSensorEntityDescription(
+        key="battery_discharge_current",
+        name="Battery discharge current",
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=3,
+        value_fn=_discharge_current_a,
     ),
     WaveshareSensorEntityDescription(
         key="ac_adapter_voltage",
@@ -245,13 +294,22 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
         value_fn=lambda d: d.get("shunt_voltage"),
     ),
     WaveshareSensorEntityDescription(
-        key="battery_current",
-        name="Battery current",
+        key="battery_charge_current",
+        name="Battery charge current",
         native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=1,
-        value_fn=lambda d: d.get("current"),
+        value_fn=_charge_current_ma,
+    ),
+    WaveshareSensorEntityDescription(
+        key="battery_discharge_current",
+        name="Battery discharge current",
+        native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
+        device_class=SensorDeviceClass.CURRENT,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        value_fn=_discharge_current_ma,
     ),
     WaveshareSensorEntityDescription(
         key="power",
@@ -277,12 +335,6 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
         value_fn=lambda d: d.get("remaining_time_min"),
     ),
 )
-
-
-def _scale(value: Any, factor: float) -> float | None:
-    if value is None:
-        return None
-    return round(value * factor, 3)
 
 
 async def async_setup_entry(
