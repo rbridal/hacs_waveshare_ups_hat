@@ -14,9 +14,9 @@ This repository is the actively maintained continuation of the original project 
 
 1. **HACS → ⋮ → Custom repositories**
 2. Add:
-   - **URL:** `https://github.com/rbridal/homeassistant_waveshare_ups_hat`
+   - **URL:** `https://github.com/rbridal/homeassistant_waveshare_ups_hat_e`
    - **Type:** Integration
-3. Search for **Waveshare UPS Hat** and install
+3. Search for **Waveshare UPS HAT (E)** and install
 4. Restart Home Assistant
 
 ### Manual
