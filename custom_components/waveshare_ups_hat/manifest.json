@@ -1,9 +1,9 @@
 {
   "domain": "waveshare_ups_hat",
   "name": "Waveshare UPS Hat",
-  "documentation": "https://github.com/mykhailog/hacs_waveshare_ups_hat",
-  "issue_tracker": "https://github.com/mykhailog/hacs_waveshare_ups_hat/issues",
+  "documentation": "https://github.com/rbridal/hacs_waveshare_ups_hat",
+  "issue_tracker": "https://github.com/rbridal/hacs_waveshare_ups_hat/issues",
   "requirements": ["smbus2>=0.4.2"],
-  "codeowners": ["@mykhailog"],
-  "version": "0.1.6"
+  "codeowners": ["@rbridal"],
+  "version": "0.2.0"
 }
