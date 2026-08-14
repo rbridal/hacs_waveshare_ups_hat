@@ -29,13 +29,13 @@ class WaveshareBinarySensorEntityDescription(BinarySensorEntityDescription):
 E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
     WaveshareBinarySensorEntityDescription(
         key="ac_power",
-        translation_key="ac_power",
+        name="AC power",
         device_class=BinarySensorDeviceClass.POWER,
         value_fn=lambda d: bool(d.get("online")),
     ),
     WaveshareBinarySensorEntityDescription(
         key="charging",
-        translation_key="charging",
+        name="Charging",
         device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
         value_fn=lambda d: bool(d.get("is_charging")),
     ),
@@ -44,19 +44,19 @@ E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
 CLASSIC_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
     WaveshareBinarySensorEntityDescription(
         key="ac_power",
-        translation_key="ac_power",
+        name="AC power",
         device_class=BinarySensorDeviceClass.POWER,
         value_fn=lambda d: bool(d.get("online")),
     ),
     WaveshareBinarySensorEntityDescription(
         key="charging",
-        translation_key="charging",
+        name="Charging",
         device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
         value_fn=lambda d: bool(d.get("charging")),
     ),
     WaveshareBinarySensorEntityDescription(
         key="low_battery",
-        translation_key="low_battery",
+        name="Low battery",
         device_class=BinarySensorDeviceClass.BATTERY,
         value_fn=lambda d: bool(d.get("low_battery")),
     ),
