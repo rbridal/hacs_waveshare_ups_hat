@@ -1,97 +1,117 @@
-import voluptuous as vol
+"""Binary sensor platform for Waveshare UPS Hat."""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Any, Callable
+
 from homeassistant.components.binary_sensor import (
-    BinarySensorEntity,
     BinarySensorDeviceClass,
-    PLATFORM_SCHEMA,
+    BinarySensorEntity,
+    BinarySensorEntityDescription,
 )
-from homeassistant.const import CONF_NAME, CONF_UNIQUE_ID
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
-import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .ina219 import INA219
-from .ups_hat_e import UPSHatEData
-from .const import MIN_ONLINE_CURRENT, DOMAIN, CONF_MODEL, MODEL_E
+from .const import CONF_MODEL, DOMAIN, MODEL_E
+from .coordinator import WaveshareUpsCoordinator
 
-DEFAULT_NAME = "waveshare_ups_hat_online"
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    vol.Optional(CONF_MODEL): cv.string,
-    vol.Optional(CONF_UNIQUE_ID): cv.string,
-})
+@dataclass(frozen=True, kw_only=True)
+class WaveshareBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Describes a Waveshare UPS binary sensor."""
 
-# key, friendly suffix, data key, device_class
-E_BINARY_SENSORS = (
-    ("online", "Online", "online", BinarySensorDeviceClass.POWER),
-    ("charging", "Charging", "is_charging", BinarySensorDeviceClass.BATTERY_CHARGING),
+    value_fn: Callable[[dict[str, Any]], bool]
+
+
+E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
+    WaveshareBinarySensorEntityDescription(
+        key="online",
+        translation_key="online",
+        device_class=BinarySensorDeviceClass.POWER,
+        value_fn=lambda d: bool(d.get("online")),
+    ),
+    WaveshareBinarySensorEntityDescription(
+        key="charging",
+        translation_key="charging",
+        device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
+        value_fn=lambda d: bool(d.get("is_charging")),
+    ),
+)
+
+CLASSIC_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
+    WaveshareBinarySensorEntityDescription(
+        key="online",
+        translation_key="online",
+        device_class=BinarySensorDeviceClass.POWER,
+        value_fn=lambda d: bool(d.get("online")),
+    ),
+    WaveshareBinarySensorEntityDescription(
+        key="charging",
+        translation_key="charging",
+        device_class=BinarySensorDeviceClass.BATTERY_CHARGING,
+        value_fn=lambda d: bool(d.get("charging")),
+    ),
+    WaveshareBinarySensorEntityDescription(
+        key="low_battery",
+        translation_key="low_battery",
+        device_class=BinarySensorDeviceClass.BATTERY,
+        value_fn=lambda d: bool(d.get("low_battery")),
+    ),
 )
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up an Online Status binary sensor."""
-    model = config.get(CONF_MODEL)
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up binary sensors from a config entry."""
+    coordinator: WaveshareUpsCoordinator = hass.data[DOMAIN][entry.entry_id]
+    model = entry.data[CONF_MODEL]
 
-    if model == MODEL_E:
-        name = config.get(CONF_NAME)
-        if name == DEFAULT_NAME:
-            name = "UPS"
-        base_id = config.get(CONF_UNIQUE_ID) or name
-        data = UPSHatEData()
-        add_entities(
-            [WaveshareUpsHatEBinarySensor(data, name, base_id, desc) for desc in E_BINARY_SENSORS],
-            True,
+    descriptions = (
+        E_BINARY_SENSORS if model == MODEL_E else CLASSIC_BINARY_SENSORS
+    )
+    async_add_entities(
+        WaveshareUpsBinarySensor(coordinator, entry, description)
+        for description in descriptions
+    )
+
+
+class WaveshareUpsBinarySensor(
+    CoordinatorEntity[WaveshareUpsCoordinator], BinarySensorEntity
+):
+    """A binary sensor for the Waveshare UPS Hat."""
+
+    entity_description: WaveshareBinarySensorEntityDescription
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        coordinator: WaveshareUpsCoordinator,
+        entry: ConfigEntry,
+        description: WaveshareBinarySensorEntityDescription,
+    ) -> None:
+        """Initialize the binary sensor."""
+        super().__init__(coordinator)
+        self.entity_description = description
+        self._attr_unique_id = f"{entry.unique_id}_{description.key}"
+        model_label = (
+            "UPS HAT (E)" if entry.data[CONF_MODEL] == MODEL_E else "UPS HAT"
         )
-        return
-
-    add_entities([OnlineStatus(config, {})], True)
-
-
-class WaveshareUpsHatEBinarySensor(BinarySensorEntity):
-    """A binary sensor for the Waveshare UPS HAT (E)."""
-
-    def __init__(self, data, name, base_id, desc):
-        key, suffix, data_key, device_class = desc
-        self._data = data
-        self._data_key = data_key
-        self._attr_name = f"{name} {suffix}"
-        self._attr_device_class = device_class
-        self._attr_unique_id = f"{base_id}_{key}" if base_id else None
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, base_id)},
-            name=name,
+            identifiers={(DOMAIN, entry.entry_id)},
+            name=entry.title,
             manufacturer="Waveshare",
-            model="UPS HAT (E)",
+            model=model_label,
         )
 
-    def update(self):
-        self._data.update()
-        self._attr_is_on = bool(self._data.data.get(self._data_key))
-
-
-class OnlineStatus(BinarySensorEntity):
-    """Representation of an UPS online status."""
-
-    def __init__(self, config, data):
-        """Initialize the UPS online status binary device."""
-        self._name = DEFAULT_NAME
-        self._ina219 = INA219(addr=0x42)
-        self._state = True
-
     @property
-    def name(self):
-        """Return the name of the UPS online status sensor."""
-        return self._name
-
-    @property
-    def device_class(self):
-        """Return the device class of the binary sensor."""
-        return BinarySensorDeviceClass.POWER
-
-    @property
-    def is_on(self):
-        """Return true if the UPS is online, else false."""
-        return self._state
-
-    def update(self):
-        """Get the status from UPS online status and set this entity's state."""
-        self._state = self._ina219.getCurrent_mA() > MIN_ONLINE_CURRENT
+    def is_on(self) -> bool | None:
+        """Return true if the binary sensor is on."""
+        if self.coordinator.data is None:
+            return None
+        return self.entity_description.value_fn(self.coordinator.data)
