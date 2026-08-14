@@ -29,6 +29,12 @@ from .coordinator import WaveshareUpsCoordinator
 # Battery % below this while charging counts as an active recharge cycle.
 RECHARGE_THRESHOLD = 95
 
+# VBUS (mV) above this means an AC adapter is present.
+AC_PRESENT_MV = 1000
+
+# Battery current (mA) below this (more negative) counts as discharging.
+DISCHARGE_CURRENT_MA = -10
+
 SYSTEM_STATE_OPTIONS = ("ok", "recharging", "on_battery", "low_battery")
 
 
@@ -40,15 +46,23 @@ class WaveshareSensorEntityDescription(SensorEntityDescription):
 
 
 def _system_state_e(data: dict[str, Any]) -> str:
-    """High-level state for UPS HAT (E)."""
+    """High-level state for UPS HAT (E).
+
+    AC presence is based on VBUS voltage (not the MCU status flag), because the
+    MCU can report "idle" while running on battery with the adapter unplugged.
+    """
     percent = data.get("battery_percent")
     if percent is None:
         percent = 100
-    discharging = bool(data.get("is_discharging")) or data.get("status") == "discharging"
-    online = bool(data.get("online"))
+
+    vbus_mv = data.get("vbus_voltage") or 0
+    battery_ma = data.get("battery_current") or 0
     charging = bool(data.get("is_charging"))
 
-    if discharging or not online:
+    ac_present = vbus_mv >= AC_PRESENT_MV
+    discharging = battery_ma <= DISCHARGE_CURRENT_MA
+
+    if not ac_present or discharging:
         if percent < LOW_BATTERY_PERCENTAGE:
             return "low_battery"
         return "on_battery"
@@ -64,8 +78,9 @@ def _system_state_classic(data: dict[str, Any]) -> str:
         percent = 100
     online = bool(data.get("online"))
     charging = bool(data.get("charging"))
+    current = data.get("current") or 0
 
-    if not online:
+    if not online or current < 0:
         if percent < LOW_BATTERY_PERCENTAGE:
             return "low_battery"
         return "on_battery"
@@ -186,6 +201,11 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
         value_fn=lambda d: _scale(d.get("vbus_power"), 0.001),
     ),
     WaveshareSensorEntityDescription(
+        key="ac_adapter_input_status",
+        name="AC adapter input status",
+        value_fn=lambda d: d.get("status"),
+    ),
+    WaveshareSensorEntityDescription(
         key="remaining_capacity",
         name="Remaining capacity",
         native_unit_of_measurement="mAh",
@@ -205,11 +225,6 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
         native_unit_of_measurement=UnitOfTime.MINUTES,
         device_class=SensorDeviceClass.DURATION,
         value_fn=lambda d: d.get("time_to_full"),
-    ),
-    WaveshareSensorEntityDescription(
-        key="charging_status",
-        name="Charging status",
-        value_fn=lambda d: d.get("status"),
     ),
     WaveshareSensorEntityDescription(
         key="battery_1_voltage",
