@@ -1,6 +1,5 @@
 {
   "name": "Waveshare UPS Hat",
-  "domains": ["sensor","binary_sensor"],
   "render_readme": true,
-  "iot_class": ["Local Polling"]
+  "homeassistant": "2024.1.0"
 }
