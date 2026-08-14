@@ -6,7 +6,7 @@ UI config flow · proper device with associated entities · clear sensor names �
 
 This repository is the actively maintained continuation of the original project by [@mykhailog](https://github.com/mykhailog/hacs_waveshare_ups_hat), with UPS HAT (E) support from [@andriyor](https://github.com/andriyor). **This integration supports the UPS HAT (E) only** (not classic INA219 models).
 
-<img src="https://www.waveshare.com/media/catalog/product/u/p/ups-hat-e-1.jpg" width="400" alt="Waveshare UPS HAT (E) with Raspberry Pi" />
+<img width="420" height="400" alt="image" src="https://github.com/user-attachments/assets/74820614-0d57-45a6-a311-c3653d788e2f" />
 
 ## Installation
 
