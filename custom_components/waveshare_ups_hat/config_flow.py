@@ -5,7 +5,6 @@ from typing import Any
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import selector
@@ -115,12 +114,15 @@ class WaveshareUpsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_details(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Collect name, bus, address, and classic-only options."""
+        """Collect bus, address, and classic-only options.
+
+        Device name/area are handled by HA's standard "Name and assign" step
+        after the entry is created (default title: UPS).
+        """
         model = self._model or MODEL_E
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            name = user_input[CONF_NAME]
             bus = int(user_input[CONF_BUS])
             addr = int(str(user_input[CONF_ADDR]), 0)  # accept 0x2d or 45
 
@@ -132,7 +134,6 @@ class WaveshareUpsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = error
             else:
                 data: dict[str, Any] = {
-                    CONF_NAME: name,
                     CONF_MODEL: model,
                     CONF_BUS: bus,
                     CONF_ADDR: addr,
@@ -146,10 +147,9 @@ class WaveshareUpsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                             user_input[CONF_BATTERY_CAPACITY]
                         )
 
-                return self.async_create_entry(title=name, data=data)
+                return self.async_create_entry(title=DEFAULT_NAME, data=data)
 
         schema_fields: dict[Any, Any] = {
-            vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
             vol.Required(CONF_BUS, default=DEFAULT_BUS): _box_number(
                 min_value=0, max_value=10, step=1
             ),
