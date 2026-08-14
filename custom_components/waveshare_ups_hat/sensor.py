@@ -23,8 +23,13 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_MODEL, DOMAIN, MODEL_E
+from .const import CONF_MODEL, DOMAIN, LOW_BATTERY_PERCENTAGE, MODEL_E
 from .coordinator import WaveshareUpsCoordinator
+
+# Battery % below this while charging counts as an active recharge cycle.
+RECHARGE_THRESHOLD = 95
+
+SYSTEM_STATE_OPTIONS = ("ok", "recharging", "on_battery", "low_battery")
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -34,7 +39,49 @@ class WaveshareSensorEntityDescription(SensorEntityDescription):
     value_fn: Callable[[dict[str, Any]], Any]
 
 
+def _system_state_e(data: dict[str, Any]) -> str:
+    """High-level state for UPS HAT (E)."""
+    percent = data.get("battery_percent")
+    if percent is None:
+        percent = 100
+    discharging = bool(data.get("is_discharging")) or data.get("status") == "discharging"
+    online = bool(data.get("online"))
+    charging = bool(data.get("is_charging"))
+
+    if discharging or not online:
+        if percent < LOW_BATTERY_PERCENTAGE:
+            return "low_battery"
+        return "on_battery"
+    if charging and percent < RECHARGE_THRESHOLD:
+        return "recharging"
+    return "ok"
+
+
+def _system_state_classic(data: dict[str, Any]) -> str:
+    """High-level state for classic INA219 HAT."""
+    percent = data.get("soc")
+    if percent is None:
+        percent = 100
+    online = bool(data.get("online"))
+    charging = bool(data.get("charging"))
+
+    if not online:
+        if percent < LOW_BATTERY_PERCENTAGE:
+            return "low_battery"
+        return "on_battery"
+    if charging and percent < RECHARGE_THRESHOLD:
+        return "recharging"
+    return "ok"
+
+
 E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
+    WaveshareSensorEntityDescription(
+        key="system_state",
+        translation_key="system_state",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(SYSTEM_STATE_OPTIONS),
+        value_fn=_system_state_e,
+    ),
     WaveshareSensorEntityDescription(
         key="battery_percent",
         translation_key="battery_percent",
@@ -153,6 +200,13 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
 )
 
 CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
+    WaveshareSensorEntityDescription(
+        key="system_state",
+        translation_key="system_state",
+        device_class=SensorDeviceClass.ENUM,
+        options=list(SYSTEM_STATE_OPTIONS),
+        value_fn=_system_state_classic,
+    ),
     WaveshareSensorEntityDescription(
         key="battery_percent",
         translation_key="battery_percent",
