@@ -10,9 +10,8 @@
       },
       "details": {
         "title": "Configure {model}",
-        "description": "Enter a name and I2C settings. Address can be hex (0x2d) or decimal.",
+        "description": "Enter I2C settings. Address can be hex (0x2d) or decimal. Device name and area are set on the next screen.",
         "data": {
-          "name": "Name",
           "bus": "I2C bus",
           "addr": "I2C address",
           "max_soc": "Max SoC (%)",
