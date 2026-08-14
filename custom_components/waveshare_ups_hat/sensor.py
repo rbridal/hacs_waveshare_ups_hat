@@ -77,6 +77,7 @@ def _system_state_classic(data: dict[str, Any]) -> str:
 E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     WaveshareSensorEntityDescription(
         key="system_state",
+        name="System state",
         translation_key="system_state",
         device_class=SensorDeviceClass.ENUM,
         options=list(SYSTEM_STATE_OPTIONS),
@@ -84,7 +85,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_percent",
-        translation_key="battery_percent",
+        name="Battery",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
@@ -92,7 +93,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_pack_voltage",
-        translation_key="battery_pack_voltage",
+        name="Battery pack voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -101,7 +102,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_current",
-        translation_key="battery_current",
+        name="Battery current",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
@@ -110,7 +111,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="ac_adapter_voltage",
-        translation_key="ac_adapter_voltage",
+        name="AC adapter voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -119,7 +120,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="ac_adapter_current",
-        translation_key="ac_adapter_current",
+        name="AC adapter current",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
@@ -128,7 +129,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="ac_adapter_power",
-        translation_key="ac_adapter_power",
+        name="AC adapter power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
@@ -137,33 +138,33 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="remaining_capacity",
-        translation_key="remaining_capacity",
+        name="Remaining capacity",
         native_unit_of_measurement="mAh",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda d: d.get("remaining_capacity"),
     ),
     WaveshareSensorEntityDescription(
         key="runtime_remaining",
-        translation_key="runtime_remaining",
+        name="Runtime remaining",
         native_unit_of_measurement=UnitOfTime.MINUTES,
         device_class=SensorDeviceClass.DURATION,
         value_fn=lambda d: d.get("time_to_empty"),
     ),
     WaveshareSensorEntityDescription(
         key="time_to_full_charge",
-        translation_key="time_to_full_charge",
+        name="Time to full charge",
         native_unit_of_measurement=UnitOfTime.MINUTES,
         device_class=SensorDeviceClass.DURATION,
         value_fn=lambda d: d.get("time_to_full"),
     ),
     WaveshareSensorEntityDescription(
         key="charging_status",
-        translation_key="charging_status",
+        name="Charging status",
         value_fn=lambda d: d.get("status"),
     ),
     WaveshareSensorEntityDescription(
         key="battery_1_voltage",
-        translation_key="battery_1_voltage",
+        name="Battery 1 voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -172,7 +173,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_2_voltage",
-        translation_key="battery_2_voltage",
+        name="Battery 2 voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -181,7 +182,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_3_voltage",
-        translation_key="battery_3_voltage",
+        name="Battery 3 voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -190,7 +191,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_4_voltage",
-        translation_key="battery_4_voltage",
+        name="Battery 4 voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -202,6 +203,7 @@ E_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
 CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     WaveshareSensorEntityDescription(
         key="system_state",
+        name="System state",
         translation_key="system_state",
         device_class=SensorDeviceClass.ENUM,
         options=list(SYSTEM_STATE_OPTIONS),
@@ -209,7 +211,7 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_percent",
-        translation_key="battery_percent",
+        name="Battery",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
@@ -217,7 +219,7 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="psu_voltage",
-        translation_key="psu_voltage",
+        name="PSU voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -226,7 +228,7 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="load_voltage",
-        translation_key="load_voltage",
+        name="Load voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -235,7 +237,7 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="shunt_voltage",
-        translation_key="shunt_voltage",
+        name="Shunt voltage",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -244,7 +246,7 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="battery_current",
-        translation_key="battery_current",
+        name="Battery current",
         native_unit_of_measurement=UnitOfElectricCurrent.MILLIAMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
@@ -253,7 +255,7 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="power",
-        translation_key="power",
+        name="Power",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
@@ -262,14 +264,14 @@ CLASSIC_SENSORS: tuple[WaveshareSensorEntityDescription, ...] = (
     ),
     WaveshareSensorEntityDescription(
         key="remaining_capacity",
-        translation_key="remaining_capacity",
+        name="Remaining capacity",
         native_unit_of_measurement="mAh",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda d: d.get("remaining_battery_capacity"),
     ),
     WaveshareSensorEntityDescription(
         key="runtime_remaining",
-        translation_key="runtime_remaining",
+        name="Runtime remaining",
         native_unit_of_measurement=UnitOfTime.MINUTES,
         device_class=SensorDeviceClass.DURATION,
         value_fn=lambda d: d.get("remaining_time_min"),
