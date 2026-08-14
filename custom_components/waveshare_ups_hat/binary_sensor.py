@@ -99,6 +99,7 @@ class WaveshareUpsBinarySensor(
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{entry.unique_id}_{description.key}"
+        self._attr_suggested_object_id = description.key
         model_label = (
             "UPS HAT (E)" if entry.data[CONF_MODEL] == MODEL_E else "UPS HAT"
         )
