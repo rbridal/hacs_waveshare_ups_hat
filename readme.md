@@ -10,142 +10,87 @@ This repository is the actively maintained continuation of the original project 
 
 ### HACS
 
-If you use [HACS](https://hacs.xyz/) you can install and update this component.
-
 1. Go into **HACS → Custom repositories** and add:
    - URL: `https://github.com/rbridal/hacs_waveshare_ups_hat`
    - Type: **Integration**
-2. Go to Integrations, search for **waveshare_ups_hat**, and click **Install**.
+2. Search for **Waveshare UPS Hat** and install it.
+3. Restart Home Assistant.
 
 ### Manual
 
-Download and unzip or clone this repository and copy `custom_components/waveshare_ups_hat/` to your configuration directory of Home Assistant, e.g. `~/.homeassistant/custom_components/`.
+Copy `custom_components/waveshare_ups_hat/` into your Home Assistant `custom_components` directory and restart.
 
-In the end your file structure should look like this:
+## Configuration (UI)
 
-```
-~/.homeassistant/custom_components/waveshare_ups_hat/__init__.py
-~/.homeassistant/custom_components/waveshare_ups_hat/manifest.json
-~/.homeassistant/custom_components/waveshare_ups_hat/sensor.py
-~/.homeassistant/custom_components/waveshare_ups_hat/binary_sensor.py
-~/.homeassistant/custom_components/waveshare_ups_hat/const.py
-~/.homeassistant/custom_components/waveshare_ups_hat/ina219.py
-~/.homeassistant/custom_components/waveshare_ups_hat/ups_hat_e.py
-```
+**YAML platform configuration is no longer used.** Setup is done entirely in the UI.
 
-## Configuration
+1. Go to **Settings → Devices & services → Add integration**
+2. Search for **Waveshare UPS Hat**
+3. Choose your model:
+   - **UPS HAT (E)** — MCU at I2C `0x2d`
+   - **Classic / UPS HAT (C)** — INA219 (typically `0x42`)
+4. Enter a name, I2C bus (usually `1`), and address if needed
+5. For classic models you can optionally set max SoC and battery capacity (mAh)
 
-### Classic UPS HAT / UPS HAT (C) (INA219-based)
+The integration creates a **device** with all related sensors and binary sensors attached to it.
 
-Create a sensor entry in your `configuration.yaml`:
+### Migrating from YAML
 
-```yaml
-sensor:
-  - platform: waveshare_ups_hat
-    name: UPS                    # Optional
-    unique_id: waveshare_ups     # Optional
-```
-
-The following data can be read:
-
-- SoC (State of Charge)
-- PSU Voltage
-- Shunt Voltage
-- Current
-- Power
-- Charging Status
-- Online Status
-- Is Low Battery (< 20%)
-
-If you consistently experience capacity below 100% when the device is fully charged, you can adjust it using the `max_soc` property:
+If you previously used YAML like:
 
 ```yaml
 sensor:
   - platform: waveshare_ups_hat
-    max_soc: 91
-```
-
-Optional `battery_capacity` (mAh) enables remaining capacity / remaining time estimates.
-
-### UPS HAT (E)
-
-The (E) model uses a different on-board MCU (I2C address `0x2d`) instead of an INA219. Add the `model: e` option:
-
-```yaml
-sensor:
-  - platform: waveshare_ups_hat
-    name: UPS E
-    unique_id: waveshare_ups_e
+    name: UPS
+    unique_id: waveshare_ups
     model: e
 ```
 
-This exposes individual sensors for:
+1. Remove those `sensor:` / `binary_sensor:` platform entries from `configuration.yaml`
+2. Restart Home Assistant
+3. Add the integration via the UI as described above
+4. Delete any leftover orphaned entities from the old setup if they remain
 
-- Battery %
-- Battery voltage / current
-- VBUS voltage / current / power
-- Remaining capacity (mAh)
-- Time to empty / time to full
-- Charging status
-- Individual cell voltages (1–4)
+### Entities (UPS HAT E)
 
-### Binary Sensor
+| Entity | Description |
+|--------|-------------|
+| Battery | State of charge (%) |
+| Battery voltage / current | Pack voltage and current |
+| VBUS voltage / current / power | USB-C / input side |
+| Remaining capacity | mAh |
+| Time to empty / full | Minutes (when applicable) |
+| Status | `charging` / `fast_charging` / `discharging` / `idle` |
+| Cell voltage 1–4 | Individual cell voltages |
+| Online | Power present (not on battery only) |
+| Charging | Battery is charging |
 
-You may also create a binary sensor that is “on” when the UPS is online and “off” otherwise:
+### Entities (Classic / C)
 
-```yaml
-binary_sensor:
-  - platform: waveshare_ups_hat
-```
+Battery %, PSU / load / shunt voltage, current, power, remaining capacity & time (if capacity configured), online, charging, and low-battery binary sensors.
 
-## Enabling I2C / smbus support on Raspberry Pi
+## Enabling I2C
 
 ### Home Assistant OS
 
-To enable I2C in Home Assistant OS follow the [official instructions](https://www.home-assistant.io/common-tasks/os/#enable-i2c) or use the [HassOS I2C Configurator add-on](https://community.home-assistant.io/t/add-on-hassos-i2c-configurator/264167).
+Follow the [official I2C instructions](https://www.home-assistant.io/common-tasks/os/#enable-i2c) or use the [HassOS I2C Configurator add-on](https://community.home-assistant.io/t/add-on-hassos-i2c-configurator/264167).
 
 ### Home Assistant Core / Raspberry Pi OS
 
-Enable the I2C interface:
-
 ```bash
-sudo raspi-config
-```
-
-Select **Interfacing Options → I2C → Yes**, then reboot.
-
-Install dependencies and add the `homeassistant` user to the `i2c` group:
-
-```bash
-sudo apt-get install build-essential libi2c-dev i2c-tools python3-dev libffi-dev
+sudo raspi-config   # Interfacing Options → I2C → Yes
+sudo apt-get install i2c-tools
 sudo addgroup homeassistant i2c
 sudo reboot
 ```
 
-#### Check the I2C address of the sensor
+Scan for the device:
 
 ```bash
 /usr/sbin/i2cdetect -y 1
 ```
 
-Typical addresses:
-
-- Classic UPS HAT / (C): often `0x42` (INA219)
-- UPS HAT (E): `0x2d`
-
-Example output:
-
-```text
-     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- --
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-20: -- -- -- 23 -- -- -- -- -- -- -- -- -- -- -- --
-30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-40: 40 -- -- -- -- -- UU -- -- -- -- -- -- -- -- --
-50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
-70: -- -- -- -- -- -- -- 77
-```
+Typical addresses: **0x2d** (E model), **0x42** (classic INA219).
 
 ## Credits
 
