@@ -2,25 +2,16 @@
   "config": {
     "step": {
       "user": {
-        "title": "Waveshare UPS Hat",
-        "description": "Select your UPS HAT model.",
-        "data": {
-          "model": "Model"
-        }
-      },
-      "details": {
-        "title": "Configure {model}",
+        "title": "Waveshare UPS HAT (E)",
         "description": "Enter I2C settings. Address can be hex (0x2d) or decimal. Device name and area are set on the next screen.",
         "data": {
           "bus": "I2C bus",
-          "addr": "I2C address",
-          "max_soc": "Max SoC (%)",
-          "battery_capacity": "Battery capacity (mAh)"
+          "addr": "I2C address"
         }
       }
     },
     "error": {
-      "cannot_connect": "Could not communicate with the UPS over I2C. Check wiring, that I2C is enabled, and the address.",
+      "cannot_connect": "Could not communicate with the UPS over I2C. Check wiring, that I2C is enabled, and the address (default 0x2d).",
       "unknown": "Unexpected error while probing the device."
     },
     "abort": {
