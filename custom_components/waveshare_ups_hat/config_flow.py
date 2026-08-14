@@ -31,6 +31,23 @@ def _default_addr(model: str) -> int:
     return DEFAULT_ADDR_E if model == MODEL_E else DEFAULT_ADDR_CLASSIC
 
 
+def _box_number(
+    *,
+    min_value: float | None = None,
+    max_value: float | None = None,
+    step: float = 1,
+) -> selector.NumberSelector:
+    """Number field rendered as a text box (not a slider)."""
+    return selector.NumberSelector(
+        selector.NumberSelectorConfig(
+            min=min_value,
+            max=max_value,
+            step=step,
+            mode=selector.NumberSelectorMode.BOX,
+        )
+    )
+
+
 async def _async_validate_i2c(
     hass: HomeAssistant, model: str, bus: int, addr: int
 ) -> str | None:
@@ -105,7 +122,7 @@ class WaveshareUpsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             name = user_input[CONF_NAME]
             bus = int(user_input[CONF_BUS])
-            addr = int(user_input[CONF_ADDR], 0)  # accept 0x2d or 45
+            addr = int(str(user_input[CONF_ADDR]), 0)  # accept 0x2d or 45
 
             await self.async_set_unique_id(f"{model}_{bus}_{addr:02x}")
             self._abort_if_unique_id_configured()
@@ -121,27 +138,31 @@ class WaveshareUpsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_ADDR: addr,
                 }
                 if model == MODEL_CLASSIC:
-                    data[CONF_MAX_SOC] = user_input.get(CONF_MAX_SOC, DEFAULT_MAX_SOC)
+                    data[CONF_MAX_SOC] = int(
+                        user_input.get(CONF_MAX_SOC, DEFAULT_MAX_SOC)
+                    )
                     if user_input.get(CONF_BATTERY_CAPACITY):
-                        data[CONF_BATTERY_CAPACITY] = user_input[CONF_BATTERY_CAPACITY]
+                        data[CONF_BATTERY_CAPACITY] = int(
+                            user_input[CONF_BATTERY_CAPACITY]
+                        )
 
                 return self.async_create_entry(title=name, data=data)
 
         schema_fields: dict[Any, Any] = {
             vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
-            vol.Required(CONF_BUS, default=DEFAULT_BUS): vol.All(
-                vol.Coerce(int), vol.Range(min=0, max=10)
+            vol.Required(CONF_BUS, default=DEFAULT_BUS): _box_number(
+                min_value=0, max_value=10, step=1
             ),
             vol.Required(
                 CONF_ADDR, default=f"0x{_default_addr(model):02x}"
             ): str,
         }
         if model == MODEL_CLASSIC:
-            schema_fields[vol.Optional(CONF_MAX_SOC, default=DEFAULT_MAX_SOC)] = (
-                vol.All(vol.Coerce(int), vol.Range(min=1, max=100))
-            )
-            schema_fields[vol.Optional(CONF_BATTERY_CAPACITY)] = vol.All(
-                vol.Coerce(int), vol.Range(min=1)
+            schema_fields[
+                vol.Optional(CONF_MAX_SOC, default=DEFAULT_MAX_SOC)
+            ] = _box_number(min_value=1, max_value=100, step=1)
+            schema_fields[vol.Optional(CONF_BATTERY_CAPACITY)] = _box_number(
+                min_value=1, step=1
             )
 
         return self.async_show_form(
