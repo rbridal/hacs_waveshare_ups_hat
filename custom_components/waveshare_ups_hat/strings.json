@@ -30,6 +30,15 @@
   },
   "entity": {
     "sensor": {
+      "system_state": {
+        "name": "System state",
+        "state": {
+          "ok": "OK",
+          "recharging": "Recharging",
+          "on_battery": "On battery",
+          "low_battery": "Low battery"
+        }
+      },
       "battery_percent": { "name": "Battery" },
       "battery_pack_voltage": { "name": "Battery pack voltage" },
       "battery_current": { "name": "Battery current" },
