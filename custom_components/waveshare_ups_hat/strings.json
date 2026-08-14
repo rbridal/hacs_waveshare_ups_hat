@@ -35,33 +35,10 @@
         "state": {
           "ok": "OK",
           "recharging": "Recharging",
-          "on_battery": "On battery",
-          "low_battery": "Low battery"
+          "on_battery": "On Battery",
+          "low_battery": "Low Battery"
         }
-      },
-      "battery_percent": { "name": "Battery" },
-      "battery_pack_voltage": { "name": "Battery pack voltage" },
-      "battery_current": { "name": "Battery current" },
-      "ac_adapter_voltage": { "name": "AC adapter voltage" },
-      "ac_adapter_current": { "name": "AC adapter current" },
-      "ac_adapter_power": { "name": "AC adapter power" },
-      "remaining_capacity": { "name": "Remaining capacity" },
-      "runtime_remaining": { "name": "Runtime remaining" },
-      "time_to_full_charge": { "name": "Time to full charge" },
-      "charging_status": { "name": "Charging status" },
-      "battery_1_voltage": { "name": "Battery 1 voltage" },
-      "battery_2_voltage": { "name": "Battery 2 voltage" },
-      "battery_3_voltage": { "name": "Battery 3 voltage" },
-      "battery_4_voltage": { "name": "Battery 4 voltage" },
-      "psu_voltage": { "name": "PSU voltage" },
-      "load_voltage": { "name": "Load voltage" },
-      "shunt_voltage": { "name": "Shunt voltage" },
-      "power": { "name": "Power" }
-    },
-    "binary_sensor": {
-      "ac_power": { "name": "AC power" },
-      "charging": { "name": "Charging" },
-      "low_battery": { "name": "Low battery" }
+      }
     }
   }
 }
