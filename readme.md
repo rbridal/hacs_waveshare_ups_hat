@@ -1,10 +1,10 @@
-# Waveshare UPS HAT for Home Assistant
+# Waveshare UPS HAT (E) for Home Assistant
 
-Monitor [Waveshare UPS HAT](https://www.waveshare.com/wiki/UPS_HAT) and **UPS HAT (E)** hardware in Home Assistant.
+Monitor the [Waveshare UPS HAT (E)](https://www.waveshare.com/wiki/UPS_HAT_(E)) in Home Assistant.
 
 UI config flow · proper device with associated entities · clear sensor names · high-level system state
 
-This repository is the actively maintained continuation of the original project by [@mykhailog](https://github.com/mykhailog/hacs_waveshare_ups_hat), including UPS HAT (E) support contributed by [@andriyor](https://github.com/andriyor).
+This repository is the actively maintained continuation of the original project by [@mykhailog](https://github.com/mykhailog/hacs_waveshare_ups_hat), with UPS HAT (E) support from [@andriyor](https://github.com/andriyor). **This integration supports the UPS HAT (E) only** (not classic INA219 models).
 
 <img src="https://user-images.githubusercontent.com/1454659/114266149-595d6280-99fd-11eb-9056-dd0fbe178ecc.png" width="400" />
 
@@ -27,15 +27,12 @@ Copy `custom_components/waveshare_ups_hat/` into your Home Assistant `custom_com
 
 1. **Settings → Devices & services → Add integration**
 2. Search for **Waveshare UPS Hat**
-3. Choose your model:
-   - **UPS HAT (E)** — MCU at I2C `0x2d`
-   - **Classic / UPS HAT (C)** — INA219 (typically `0x42`)
-4. Enter I2C bus (usually `1`) and address if needed
-5. On the next screen, set the device name (default **UPS**) and optional area
+3. Enter I2C bus (usually `1`) and address (default `0x2d`)
+4. On the next screen, set the device name (default **UPS**) and optional area
 
 The integration creates one **device** with all sensors and binary sensors attached.
 
-## Entities — UPS HAT (E)
+## Entities
 
 | Entity | Description |
 |--------|-------------|
@@ -55,15 +52,11 @@ The integration creates one **device** with all sensors and binary sensors attac
 | **Power switch** | Side power switch on / off |
 | **Charging** | Batteries are actively charging |
 
-**System state** rules (E model):
+**System state** rules:
 
 - **On Battery** / **Low Battery** — AC adapter absent (VBUS < 1 V) or pack is discharging
 - **Recharging** — AC present, charging, and battery < 95%
 - **OK** — otherwise (including float/trickle above 95%)
-
-## Entities — Classic / C
-
-Battery %, system state, PSU / load / shunt voltage, charge & discharge current, power, remaining capacity & runtime (when capacity is configured), power switch, charging, and low-battery binary sensors.
 
 ## Enabling I2C
 
@@ -86,7 +79,7 @@ Scan for the device:
 /usr/sbin/i2cdetect -y 1
 ```
 
-Typical addresses: **0x2d** (E model), **0x42** (classic INA219).
+Expected address for UPS HAT (E): **0x2d**.
 
 ## Credits
 
@@ -107,8 +100,8 @@ In that time, Grok helped:
 - Rename every sensor to match what the hardware actually measures
 - Split signed battery current into clear **charge** / **discharge** sensors
 - Add a **System state** enum (`OK` / `Recharging` / `On Battery` / `Low Battery`) with sensible UPS logic
-- Fix entity IDs, friendly names, and config-flow UX (no more sliders for bus numbers)
-- Align the setup flow with Home Assistant’s standard “Name and assign” step
+- Fix entity IDs, friendly names, and config-flow UX
+- Focus the integration exclusively on **UPS HAT (E)**
 
 If you maintain hardware integrations (or any Home Assistant custom component) and you’ve been putting off a modernization pass: open a session with Grok, point it at the repo, and ship. The barrier to “make this feel like a first-class HA integration” is much lower than it used to be.
 
