@@ -28,8 +28,8 @@ class WaveshareBinarySensorEntityDescription(BinarySensorEntityDescription):
 
 E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
     WaveshareBinarySensorEntityDescription(
-        key="ac_power",
-        name="AC power",
+        key="power_switch",
+        name="Power switch",
         device_class=BinarySensorDeviceClass.POWER,
         value_fn=lambda d: bool(d.get("online")),
     ),
@@ -43,8 +43,8 @@ E_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
 
 CLASSIC_BINARY_SENSORS: tuple[WaveshareBinarySensorEntityDescription, ...] = (
     WaveshareBinarySensorEntityDescription(
-        key="ac_power",
-        name="AC power",
+        key="power_switch",
+        name="Power switch",
         device_class=BinarySensorDeviceClass.POWER,
         value_fn=lambda d: bool(d.get("online")),
     ),
